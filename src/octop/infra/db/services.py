@@ -10,6 +10,7 @@ from octop.infra.crypto.sealed_repos import (
     SealedBackendRepo,
     SealedProviderRepo,
     SealedUserProviderKeyRepo,
+    SealedUserSearchKeyRepo,
     SealedVoiceProviderRepo,
 )
 from octop.infra.db.pool import DatabasePool
@@ -60,6 +61,7 @@ class RepoBundle:
     agent_repo: AgentRepo
     provider_repo: SealedProviderRepo
     user_provider_key_repo: SealedUserProviderKeyRepo
+    user_search_key_repo: SealedUserSearchKeyRepo
     channel_repo: ChannelRepo
     cron_repo: CronJobRepo
     session_repo: SessionRepo
@@ -101,6 +103,7 @@ class RepoBundle:
             agent_repo=AgentRepo(db),
             provider_repo=SealedProviderRepo(ProviderRepo(db), secret_repo),
             user_provider_key_repo=SealedUserProviderKeyRepo(secret_repo),
+            user_search_key_repo=SealedUserSearchKeyRepo(secret_repo),
             channel_repo=ChannelRepo(db),
             cron_repo=CronJobRepo(db),
             session_repo=SessionRepo(db),
@@ -166,6 +169,10 @@ class SharedServices:
     @property
     def user_provider_key_repo(self) -> SealedUserProviderKeyRepo:
         return self.repos.user_provider_key_repo
+
+    @property
+    def user_search_key_repo(self) -> SealedUserSearchKeyRepo:
+        return self.repos.user_search_key_repo
 
     @property
     def channel_repo(self) -> ChannelRepo:

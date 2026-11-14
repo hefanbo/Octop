@@ -155,6 +155,8 @@ class _ResolvedModelRoute:
     automatic: bool
     #: Personal provider key for this turn (bring-your-own-key); None = global key.
     api_key_override: str | None = None
+    #: Personal web-search credentials for this turn (empty = global env).
+    search_tool_env: dict[str, str] | None = None
 
 
 class _ResolvedTurnMcp(NamedTuple):
@@ -759,6 +761,7 @@ class GlobalProcessor:
         - When a model is passed and the turn needs vision, upgrade to a vision ref.
         """
         providers = self._agent_manager.providers
+        search_tool_env = self._agent_manager.resolve_search_tool_env(user_id)
         thread_model = self._agent_manager.get_thread_model(agent_id, thread_id)
         thread_row = self._thread_registry.get_thread(thread_id)
         model_ref = self._model_ref_from_meta(
@@ -802,7 +805,7 @@ class GlobalProcessor:
                 model_ref = candidate
                 automatic = True
         if not model_ref:
-            return _ResolvedModelRoute(None, automatic=True)
+            return _ResolvedModelRoute(None, automatic=True, search_tool_env=search_tool_env)
         resolved = providers.resolve_model_for_multimodal_turn(
             model_ref,
             needs_multimodal=needs_multimodal,
@@ -810,7 +813,12 @@ class GlobalProcessor:
         if resolved != model_ref:
             automatic = True
         api_key_override = self._agent_manager.resolve_api_key_override(user_id, resolved)
-        return _ResolvedModelRoute(resolved, automatic=automatic, api_key_override=api_key_override)
+        return _ResolvedModelRoute(
+            resolved,
+            automatic=automatic,
+            api_key_override=api_key_override,
+            search_tool_env=search_tool_env,
+        )
 
     def _resolve_reasoning_overrides(
         self,
@@ -1046,6 +1054,7 @@ class GlobalProcessor:
             model=model_ref,
             auto_route=model_route.automatic,
             api_key_override=model_route.api_key_override,
+            tool_env=model_route.search_tool_env,
             message_kwargs=message_kwargs or None,
             reasoning_overrides=reasoning_overrides,
         )
@@ -1718,6 +1727,7 @@ class GlobalProcessor:
             model=model_ref,
             auto_route=model_route.automatic,
             api_key_override=model_route.api_key_override,
+            tool_env=model_route.search_tool_env,
             message_kwargs=message_kwargs or None,
             reasoning_overrides=reasoning_overrides,
             message_id=client_message_id if isinstance(client_message_id, str) else None,

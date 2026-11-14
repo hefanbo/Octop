@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { ModelKeysPanel } from "../ModelKeys/ModelKeysPanel";
+import { SearchKeysPanel } from "../SearchKeys/SearchKeysPanel";
 
 /**
  * Registry of self-service credential tabs.
@@ -19,5 +20,10 @@ export const KEYS_TABS: KeysTab[] = [
     key: "models",
     labelKey: "nav.modelKeys",
     Component: ModelKeysPanel,
+  },
+  {
+    key: "search",
+    labelKey: "nav.searchKeys",
+    Component: SearchKeysPanel,
   },
 ];
