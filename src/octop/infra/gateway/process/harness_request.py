@@ -334,6 +334,8 @@ def build_harness_request(
             configurable["api_key_override"] = api_key_override
         if tool_env:
             configurable["tool_env"] = dict(tool_env)
+        if user_id > 0:
+            configurable["octop_user_id"] = user_id
         if session_key is not None:
             configurable["session_key"] = session_key
         if reasoning_overrides:
@@ -379,6 +381,8 @@ def build_harness_request(
         configurable["api_key_override"] = api_key_override
     if tool_env:
         configurable["tool_env"] = dict(tool_env)
+    if user_id > 0:
+        configurable["octop_user_id"] = user_id
     if session_key is not None:
         configurable["session_key"] = session_key
     if reasoning_overrides:
