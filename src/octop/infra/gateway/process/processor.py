@@ -1946,7 +1946,11 @@ class GlobalProcessor:
                         f"connector authorization required: {names}",
                         details={"connectors": blocked, "servers": names},
                     )
-                raise OctopError(ErrorCode.CONNECTOR_MCP_LOAD_FAILED, detail)
+                raise OctopError(
+                    ErrorCode.CONNECTOR_MCP_LOAD_FAILED,
+                    detail,
+                    details={"servers": ", ".join(failed)},
+                )
             logger.warning(
                 "skipping turn MCP for agent=%s user=%s (%s)",
                 agent_id,
