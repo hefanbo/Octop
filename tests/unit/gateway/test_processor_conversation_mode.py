@@ -25,6 +25,7 @@ def _processor(*, thread: SimpleNamespace | None) -> GlobalProcessor:
     agent_manager.providers.resolve_model_for_multimodal_turn = MagicMock(
         side_effect=lambda ref, **_k: ref
     )
+    agent_manager.providers.auto_route_blocked_by_credentials = MagicMock(return_value=False)
     agent_manager.get_thread_model = MagicMock(return_value=None)
     thread_registry = MagicMock()
     thread_registry.get_thread = MagicMock(return_value=thread)

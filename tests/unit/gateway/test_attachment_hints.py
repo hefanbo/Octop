@@ -464,6 +464,7 @@ async def test_weixin_pdf_history_is_downloadable_attachment() -> None:
     manager = MagicMock()
     manager.get_row.return_value = None
     manager.get_thread_model.return_value = None
+    manager.providers.auto_route_blocked_by_credentials.return_value = False
     manager.resolve_fallback_model_ref.return_value = None
     manager.default_mcp_servers.return_value = None
     manager.merge_turn_mcp_servers.return_value = None

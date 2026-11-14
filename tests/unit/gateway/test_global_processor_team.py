@@ -2294,6 +2294,7 @@ def test_resolve_harness_model_auto_expert_omits_model() -> None:
         usage_repo=MagicMock(),
         gateway=MagicMock(),
     )
+    processor._agent_manager.providers.auto_route_blocked_by_credentials.return_value = False
     processor._agent_manager.get_thread_model.return_value = None
     processor._agent_repo.get.return_value = MagicMock(default_model=None)
     processor._agent_manager.get_config.return_value = {}
@@ -2322,6 +2323,7 @@ def test_resolve_harness_model_uses_agent_default_and_upgrades_vision() -> None:
         usage_repo=MagicMock(),
         gateway=MagicMock(),
     )
+    processor._agent_manager.providers.auto_route_blocked_by_credentials.return_value = False
     processor._agent_manager.get_thread_model.return_value = None
     processor._agent_repo.get.return_value = MagicMock(default_model="p/text-only")
     processor._agent_manager.get_config.return_value = {}
@@ -2338,6 +2340,7 @@ def test_resolve_harness_model_uses_agent_default_and_upgrades_vision() -> None:
     processor._agent_manager.providers.resolve_model_for_multimodal_turn.assert_called_once_with(
         "p/text-only",
         needs_multimodal=True,
+        user_id=0,
     )
 
 
@@ -2353,6 +2356,7 @@ def test_resolve_harness_model_dashboard_override_wins() -> None:
         usage_repo=MagicMock(),
         gateway=MagicMock(),
     )
+    processor._agent_manager.providers.auto_route_blocked_by_credentials.return_value = False
     processor._agent_manager.get_thread_model.return_value = None
     processor._agent_repo.get.return_value = MagicMock(default_model="p/default")
     processor._agent_manager.providers.is_model_ref_usable.return_value = True
@@ -2368,6 +2372,7 @@ def test_resolve_harness_model_dashboard_override_wins() -> None:
     processor._agent_manager.providers.resolve_model_for_multimodal_turn.assert_called_once_with(
         "p/picked",
         needs_multimodal=False,
+        user_id=0,
     )
 
 
@@ -2383,6 +2388,7 @@ def test_resolve_harness_model_route_marks_dashboard_override_explicit() -> None
         usage_repo=MagicMock(),
         gateway=MagicMock(),
     )
+    processor._agent_manager.providers.auto_route_blocked_by_credentials.return_value = False
     processor._agent_manager.get_thread_model.return_value = None
     processor._agent_manager.providers.is_model_ref_usable.return_value = True
     processor._agent_manager.providers.resolve_model_for_multimodal_turn.return_value = "p/picked"
@@ -2410,6 +2416,7 @@ def test_resolve_harness_model_route_marks_fallback_automatic() -> None:
         usage_repo=MagicMock(),
         gateway=MagicMock(),
     )
+    processor._agent_manager.providers.auto_route_blocked_by_credentials.return_value = False
     processor._agent_manager.get_thread_model.return_value = None
     processor._agent_repo.get.return_value = MagicMock(default_model=None)
     processor._agent_manager.get_config.return_value = {}
@@ -2441,6 +2448,7 @@ def test_resolve_harness_model_drops_unusable_dashboard_override() -> None:
         usage_repo=MagicMock(),
         gateway=MagicMock(),
     )
+    processor._agent_manager.providers.auto_route_blocked_by_credentials.return_value = False
     processor._agent_manager.get_thread_model.return_value = None
     processor._agent_repo.get.return_value = MagicMock(default_model="p/deleted")
     processor._agent_manager.get_config.return_value = {}
