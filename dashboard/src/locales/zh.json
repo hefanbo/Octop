@@ -371,6 +371,7 @@
     "save": "保存",
     "saved": "个人搜索密钥已保存",
     "saveFailed": "保存搜索密钥失败",
+    "deleteFailed": "删除搜索密钥失败",
     "loadFailed": "加载搜索密钥失败",
     "delete": "删除个人搜索密钥？",
     "deleteWarnNoGlobal": "该搜索服务没有全局 Key，删除后将无法继续使用，除非重新添加个人 Key。",

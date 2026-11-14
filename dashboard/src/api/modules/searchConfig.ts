@@ -7,7 +7,6 @@ export interface SearchProviderInfo {
   personal_key: boolean;
   endpoint_env?: string | null;
   label_key: string;
-  global_endpoint?: string | null;
 }
 
 export interface SearchProvidersResponse {

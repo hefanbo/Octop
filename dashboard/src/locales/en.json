@@ -371,6 +371,7 @@
     "save": "Save",
     "saved": "Personal search key saved",
     "saveFailed": "Failed to save the search key",
+    "deleteFailed": "Failed to delete the search key",
     "loadFailed": "Failed to load search keys",
     "delete": "Delete personal search key?",
     "deleteWarnNoGlobal": "This provider has no global key — you won't be able to use it until you add a new personal key.",

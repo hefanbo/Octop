@@ -48,10 +48,6 @@ async def test_endpoint_round_trip_persists_to_env_file(
     assert f"DEEPSEEK_SEARCH_ENDPOINT={endpoint}" in env_file.read_text(encoding="utf-8")
     assert os.environ["DEEPSEEK_SEARCH_ENDPOINT"] == endpoint
 
-    r = await c.get("/api/search/providers", headers=auth)
-    deepseek = next(item for item in r.json()["providers"] if item["id"] == "deepseek")
-    assert deepseek["global_endpoint"] == endpoint
-
     r = await c.put(
         "/api/search/deepseek/endpoint",
         headers=auth,
@@ -81,6 +77,21 @@ async def test_endpoint_validation(env: Any) -> None:
     )
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "SLASH_BAD_ARGS"
+
+    # Whitespace / control characters must not reach ``~/.octop/env``: a
+    # newline would inject extra keys when the env file is parsed back.
+    for bad in (
+        "https://search.example.com/v1\nPATH=/evil",
+        "https://search.example.com/v1\tPATH=/evil",
+        "https://ho st/v1",
+    ):
+        r = await c.put(
+            "/api/search/deepseek/endpoint",
+            headers=auth,
+            json={"endpoint": bad},
+        )
+        assert r.status_code == 400, bad
+        assert r.json()["error"]["code"] == "SLASH_BAD_ARGS"
 
     r = await c.put(
         "/api/search/tavily/endpoint",

@@ -117,7 +117,7 @@ export function SearchKeysPanel() {
         ),
       );
     } catch (error) {
-      message.error(apiErrorMessage(error, t("searchKeys.saveFailed"), t));
+      message.error(apiErrorMessage(error, t("searchKeys.deleteFailed"), t));
     } finally {
       setSaving(null);
     }
