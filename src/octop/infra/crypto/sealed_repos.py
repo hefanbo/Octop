@@ -146,20 +146,36 @@ class SealedUserSearchKeyRepo:
         )
         return now_ts()
 
-    def get_env(self, user_id: int, provider_id: str) -> dict[str, str] | None:
-        """Decrypt one provider's personal env mapping (runtime only)."""
-        blob = self._secrets.get(self._key(user_id, provider_id))
-        if blob is None:
-            return None
+    def _decode(self, blob: bytes) -> dict[str, str]:
         payload = decrypt_json(self._secrets, PURPOSE_SEARCH, blob)
         raw = payload.get("env")
         if not isinstance(raw, dict):
-            return None
+            return {}
         return {
             str(k): str(v)
             for k, v in raw.items()
             if isinstance(k, str) and isinstance(v, str) and v
         }
+
+    def get_env(self, user_id: int, provider_id: str) -> dict[str, str] | None:
+        """Decrypt one provider's personal env mapping (runtime only)."""
+        blob = self._secrets.get(self._key(user_id, provider_id))
+        if blob is None:
+            return None
+        return self._decode(blob)
+
+    def get_all_env(self, user_id: int) -> dict[str, str]:
+        """Decrypt every provider's personal env for one user in a single scan.
+
+        Used by the per-turn hot path; keeps it to one ``secrets`` query instead
+        of one per provider.
+        """
+        out: dict[str, str] = {}
+        for _k, blob, _created_at, _rotated_at in self._secrets.list_prefix(
+            f"{self._KEY_PREFIX}{user_id}:"
+        ):
+            out.update(self._decode(blob))
+        return out
 
     def list_for_user(self, user_id: int) -> list[tuple[str, int]]:
         """``(provider_id, updated_at)`` pairs — never the key material."""

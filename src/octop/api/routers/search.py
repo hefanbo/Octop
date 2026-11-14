@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import Any
 from urllib.parse import urlparse
 
@@ -62,7 +61,6 @@ class SearchProviderInfo(BaseModel):
     personal_key: bool
     endpoint_env: str | None = None
     label_key: str = ""
-    global_endpoint: str | None = None
 
 
 class SearchProvidersResponse(BaseModel):
@@ -81,13 +79,6 @@ class SearchEndpointResponse(BaseModel):
     provider_id: str
     endpoint_env: str
     endpoint: str | None = None
-
-
-def _read_global_endpoint(server: Any, key: str) -> str | None:
-    file_value = load_env_file(env_file_path(server.paths.root)).get(key)
-    if file_value:
-        return file_value
-    return os.getenv(key) or None
 
 
 def _write_global_env(server: Any, key: str, value: str | None) -> None:
@@ -113,6 +104,14 @@ def _validate_endpoint(endpoint: str) -> str:
     text = endpoint.strip()
     if not text or len(text) > _MAX_ENDPOINT_LENGTH:
         raise OctopError(ErrorCode.SLASH_BAD_ARGS, "endpoint must be 1 to 2048 characters")
+    # ``urlparse`` strips tabs/newlines before parsing but callers would still
+    # persist the original text; whitespace/control characters also break the
+    # ``~/.octop/env`` line format (a newline can inject extra keys).
+    if any(ch.isspace() or ord(ch) < 0x20 or ch == "\x7f" for ch in text):
+        raise OctopError(
+            ErrorCode.SLASH_BAD_ARGS,
+            "endpoint must not contain whitespace or control characters",
+        )
     parsed = urlparse(text)
     if parsed.scheme != "https":
         raise OctopError(ErrorCode.SLASH_BAD_ARGS, "endpoint must use https")
@@ -147,9 +146,6 @@ async def list_search_providers(
             personal_key=spec.personal_key,
             endpoint_env=spec.endpoint_env,
             label_key=spec.label_key,
-            global_endpoint=(
-                _read_global_endpoint(server, spec.endpoint_env) if spec.endpoint_env else None
-            ),
         )
         for spec in SEARCH_PROVIDERS
     ]

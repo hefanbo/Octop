@@ -70,6 +70,22 @@ def test_keys_are_isolated_per_user(sealed: SealedUserSearchKeyRepo) -> None:
     assert sealed.get_env(8, "deepseek") == {"DEEPSEEK_API_KEY": "sk-eight"}
 
 
+def test_get_all_env_merges_every_provider_in_one_scan(
+    sealed: SealedUserSearchKeyRepo,
+) -> None:
+    sealed.set_env(7, "deepseek", {"DEEPSEEK_API_KEY": "sk-personal"})
+    sealed.set_env(7, "google", {"GOOGLE_API_KEY": "g-key", "GOOGLE_CSE_ID": "g-cse"})
+    sealed.set_env(8, "tavily", {"TAVILY_API_KEY": "other-user"})
+
+    assert sealed.get_all_env(7) == {
+        "DEEPSEEK_API_KEY": "sk-personal",
+        "GOOGLE_API_KEY": "g-key",
+        "GOOGLE_CSE_ID": "g-cse",
+    }
+    assert sealed.get_all_env(8) == {"TAVILY_API_KEY": "other-user"}
+    assert sealed.get_all_env(9) == {}
+
+
 def test_corrupt_payload_raises(sealed: SealedUserSearchKeyRepo, db: SqlitePool) -> None:
     with db.transaction() as conn:
         conn.execute(

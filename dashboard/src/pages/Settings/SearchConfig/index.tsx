@@ -360,11 +360,17 @@ export default function SearchConfigPage() {
         SEARCH_PROVIDERS.map((p) => {
           const spec = specById.get(p.id);
           const required = spec ? spec.env_vars : p.required_keys;
+          const endpointEnv = spec?.endpoint_env ?? p.endpoint_env ?? null;
+          const hasKeys =
+            required.length > 0 && required.every((key) => !!envMap[key]);
+          const hasEndpoint = !!endpointEnv && !!envMap[endpointEnv];
           return {
             ...p,
             required_keys: required,
-            endpoint_env: spec?.endpoint_env ?? p.endpoint_env ?? null,
-            configured: required.every((key) => !!envMap[key]),
+            endpoint_env: endpointEnv,
+            // A provider is configured when it has a usable global key set or
+            // an administrator-configured endpoint (DeepSeek endpoint-only).
+            configured: hasKeys || hasEndpoint,
           };
         }),
       );

@@ -8,24 +8,19 @@ administrator's global key still works without a personal one.
 
 from __future__ import annotations
 
-from typing import Any
-
-from octop.infra.utils.search_providers import personal_search_providers
+from typing import Any, cast
 
 
 def resolve_search_tool_env(*, user_id: int, search_key_repo: Any) -> dict[str, str]:
     """The personal search env for this turn (may be empty).
 
-    Non-user callers (``user_id <= 0``) never get a personal override.
+    Non-user callers (``user_id <= 0``) never get a personal override. One
+    ``secrets`` scan covers every provider so the chat hot path does not run a
+    query per provider.
     """
     if user_id <= 0:
         return {}
-    out: dict[str, str] = {}
-    for spec in personal_search_providers():
-        env = search_key_repo.get_env(user_id, spec.id)
-        if env:
-            out.update(env)
-    return out
+    return cast("dict[str, str]", search_key_repo.get_all_env(user_id))
 
 
 __all__ = ["resolve_search_tool_env"]
