@@ -294,14 +294,11 @@ an optional display label; when omitted, the server derives one from
 
 | Method | Path | Auth | Notes |
 |--------|------|------|-------|
-| `GET`    | `/providers` | user | providers visible to the user (own + shared) |
-| `POST`   | `/providers` | user | body `{name, kind, base_url?, api_key?, model?, ...}` → `201` |
-| `PATCH`  | `/providers/{id}` | owner | body subset → updated row |
-| `DELETE` | `/providers/{id}` | owner | `204` (refuses if any agent references it) |
-| `POST`   | `/providers/{id}/test` | user | `{ok, latency_ms?, error?}` (one-token ping with 10 s timeout) |
-| `POST`   | `/admin/providers` | admin | same body as user POST; row has `user_id = NULL` |
-| `PATCH`  | `/admin/providers/{id}` | admin | as user PATCH but works on shared rows |
-| `DELETE` | `/admin/providers/{id}` | admin | `204` |
+| `GET`    | `/providers` | user | all configured providers; never includes key material (`has_api_key` boolean instead) |
+| `POST`   | `/admin/providers` | admin | body `{name, kind, base_url?, api_key?, model?, ...}` → `201` |
+| `PATCH`  | `/admin/providers/{id}` | admin | body subset → updated row |
+| `DELETE` | `/admin/providers/{id}` | admin | `204` (refuses if any agent references it) |
+| `POST`   | `/admin/providers/{id}/test` | admin | `{ok, latency_ms?, error?}` (one-token ping with 10 s timeout) |
 
 ## Search
 
