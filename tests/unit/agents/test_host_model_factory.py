@@ -26,9 +26,13 @@ def test_auto_uses_first_enabled_model(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, str] = {}
 
     def fake_get_chat_model(
-        self: ChatModelFactory, model_ref: str, *, max_retries: int | None = None
+        self: ChatModelFactory,
+        model_ref: str,
+        *,
+        max_retries: int | None = None,
+        api_key_override: str | None = None,
     ) -> MagicMock:
-        del self, max_retries
+        del self, max_retries, api_key_override
         captured["ref"] = model_ref
         return MagicMock()
 
@@ -52,9 +56,13 @@ def test_explicit_ref_is_forwarded(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, str] = {}
 
     def fake_get_chat_model(
-        self: ChatModelFactory, model_ref: str, *, max_retries: int | None = None
+        self: ChatModelFactory,
+        model_ref: str,
+        *,
+        max_retries: int | None = None,
+        api_key_override: str | None = None,
     ) -> MagicMock:
-        del self, max_retries
+        del self, max_retries, api_key_override
         captured["ref"] = model_ref
         return MagicMock()
 
