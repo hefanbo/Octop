@@ -305,6 +305,14 @@ def _row_to_dict(r: Any) -> dict[str, Any]:
     }
 
 
+def _public_provider_dict(row: Any) -> dict[str, Any]:
+    """Provider metadata safe for any authenticated user (no key material)."""
+    data = _row_to_dict(row)
+    data.pop("api_key", None)
+    data["has_api_key"] = bool((getattr(row, "api_key", None) or "").strip())
+    return data
+
+
 @router.get("/presets")
 async def list_provider_presets(
     _: Any = Depends(current_user),
@@ -363,8 +371,8 @@ async def list_providers(
     _: Any = Depends(current_user),
     server: Any = Depends(get_server),
 ) -> list[dict[str, Any]]:
-    """Return all providers. Read-only for regular users."""
-    return [_row_to_dict(r) for r in server.services.provider_repo.list_all()]
+    """Return all providers. Read-only for regular users; never key material."""
+    return [_public_provider_dict(r) for r in server.services.provider_repo.list_all()]
 
 
 # ── Admin endpoints ─────────────────────────────────────────────────────────

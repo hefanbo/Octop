@@ -2,6 +2,44 @@
 
 from __future__ import annotations
 
+from tests.support.auth import create_user
+
+CANARY = "sk-CANARY-NOT-FOR-CLIENTS"
+
+
+async def test_list_providers_never_returns_key_material(env):
+    """The user-facing list is redacted; only a boolean says whether a key exists."""
+    c, _, admin = env
+    r = await c.post(
+        "/api/admin/providers",
+        headers=admin,
+        json={"name": "openai", "kind": "openai", "api_key": CANARY},
+    )
+    assert r.status_code == 201
+    member = await create_user(c, admin, username="key-reader")
+
+    r = await c.get("/api/providers", headers=member)
+    assert r.status_code == 200
+    row = next(p for p in r.json() if p["name"] == "openai")
+    assert "api_key" not in row
+    assert row["has_api_key"] is True
+    assert CANARY not in r.text
+
+
+async def test_list_providers_marks_missing_key(env):
+    c, _, admin = env
+    r = await c.post(
+        "/api/admin/providers",
+        headers=admin,
+        json={"name": "local", "kind": "openai", "api_key": ""},
+    )
+    assert r.status_code == 201
+
+    r = await c.get("/api/providers", headers=admin)
+    row = next(p for p in r.json() if p["name"] == "local")
+    assert "api_key" not in row
+    assert row["has_api_key"] is False
+
 
 async def test_list_providers(env):
     """GET /providers returns all providers (read-only endpoint for any user)."""
