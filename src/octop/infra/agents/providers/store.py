@@ -360,7 +360,11 @@ class ProviderStore:
         return next(self.iter_usable_rows(), None) is not None
 
     def has_usable_providers(self) -> bool:
-        """True when at least one enabled provider has credentials and a model."""
+        """True when at least one enabled provider has a chat-eligible model.
+
+        There is no credential gate: keyless endpoints and BYOK-only providers
+        (empty static key, personal key supplied per call) still count.
+        """
         return next(self.iter_usable_rows(), None) is not None
 
     def build_harness_configs(self) -> list[ProviderConfig]:
@@ -478,8 +482,10 @@ class ProviderStore:
     ) -> list[AutoRouteCandidate]:
         """Return stable, auto-routable candidates for one automatic route.
 
-        Candidates require a global provider key; keyless and BYOK rows are
-        manual-only because this list is not user-aware.
+        A candidate is included when its provider may join AUTO for *user_id*:
+        it has a global key, is explicitly keyless, or the user stored a
+        personal key. ``user_id=0`` therefore yields only global-key and
+        keyless providers.
         """
         candidates: list[AutoRouteCandidate] = []
         for row in self.iter_auto_route_rows(user_id):
@@ -526,6 +532,20 @@ class ProviderStore:
                 model, provider_name=provider_name, provider_api_key=row.api_key
             )
         return False
+
+    def has_usable_credential(self, user_id: int, model_ref: str | None) -> bool:
+        """Whether *user_id* can call *model_ref* with the credentials on record.
+
+        Uses the same rule as AUTO eligibility: a global provider key, the
+        explicit keyless marker, or a personal key stored by the user. Unknown
+        refs/providers are ``False``.
+        """
+        ref = (model_ref or "").strip()
+        if user_id <= 0 or not ref or "/" not in ref:
+            return False
+        provider_name, _, _ = ref.partition("/")
+        row = self._provider_repo.get_by_name(provider_name)
+        return row is not None and self._auto_route_eligible(row, user_id)
 
     def is_model_ref_auto_usable(self, ref: str, user_id: int = 0) -> bool:
         """True when *ref* may join an automatic route for this user."""

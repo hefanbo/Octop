@@ -155,6 +155,9 @@ class _ResolvedModelRoute:
     automatic: bool
     #: Personal provider key for this turn (bring-your-own-key); None = global key.
     api_key_override: str | None = None
+    #: Provider the personal key belongs to; the harness must not reuse it for
+    #: a model that routes to another provider.
+    api_key_override_provider: str | None = None
     #: Personal web-search credentials for this turn (empty = global env).
     search_tool_env: dict[str, str] | None = None
 
@@ -819,10 +822,16 @@ class GlobalProcessor:
         if resolved != model_ref:
             automatic = True
         api_key_override = self._agent_manager.resolve_api_key_override(user_id, resolved)
+        # A personal key is only valid for the provider it was stored for; the
+        # harness drops it if routing ever selects another provider.
+        api_key_override_provider = (
+            resolved.partition("/")[0] if api_key_override and resolved else None
+        )
         return _ResolvedModelRoute(
             resolved,
             automatic=automatic,
             api_key_override=api_key_override,
+            api_key_override_provider=api_key_override_provider,
             search_tool_env=search_tool_env,
         )
 
@@ -1060,6 +1069,7 @@ class GlobalProcessor:
             model=model_ref,
             auto_route=model_route.automatic,
             api_key_override=model_route.api_key_override,
+            api_key_override_provider=model_route.api_key_override_provider,
             tool_env=model_route.search_tool_env,
             message_kwargs=message_kwargs or None,
             reasoning_overrides=reasoning_overrides,
@@ -1733,6 +1743,7 @@ class GlobalProcessor:
             model=model_ref,
             auto_route=model_route.automatic,
             api_key_override=model_route.api_key_override,
+            api_key_override_provider=model_route.api_key_override_provider,
             tool_env=model_route.search_tool_env,
             message_kwargs=message_kwargs or None,
             reasoning_overrides=reasoning_overrides,
