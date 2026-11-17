@@ -1,6 +1,7 @@
 /**
  * ActiveModelPool — shows all resolved (enabled + authorized) models
- * grouped by provider, with a star button to set the global preferred model.
+ * grouped by provider, with a star button to set the signed-in user's
+ * AUTO preferred model. Reused by the admin Models page and "My models".
  *
  * Mirrors finnie's ActiveModelPool component.
  */
@@ -10,6 +11,7 @@ import { Button, Empty, Popover, Segmented, Select, Tag, Tooltip } from "antd";
 import { message } from "@/utils/antdMessage";
 
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import cx from "classnames";
 import { request } from "../../../../../api/request";
 import { preferencesApi } from "../../../../../api/modules/preferences";
@@ -33,6 +35,12 @@ interface ActiveModelPoolProps {
     { mode: "auto" | "enabled" | "disabled"; effort?: string | null }
   >;
   onSaved: () => void | Promise<void>;
+  /**
+   * Optional per-model credential gate. The self-service "My models" page
+   * passes it so providers without a usable key cannot be starred; the admin
+   * page keeps every star active (the save reports PROVIDER_KEY_REQUIRED).
+   */
+  credentialUsable?: (model: ResolvedModel) => boolean;
 }
 
 interface GroupedModels {
@@ -48,8 +56,10 @@ export function ActiveModelPool({
   providers,
   modelReasoning,
   onSaved,
+  credentialUsable,
 }: ActiveModelPoolProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [setting, setSetting] = useState<string | null>(null);
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<
@@ -318,6 +328,10 @@ export function ActiveModelPool({
                 const canTest = providerHasKey.get(m.provider_id) ?? false;
                 const capTags = renderCapabilityTags(m);
                 const testState = testResults.get(key);
+                const usable = credentialUsable?.(m) ?? true;
+                // A preferred model stays clickable when its key is missing so
+                // the user can clear it; only setting a new star is blocked.
+                const canToggle = usable || isPreferred;
 
                 return (
                   <div
@@ -329,27 +343,34 @@ export function ActiveModelPool({
                   >
                     <Tooltip
                       title={
-                        isPreferred
+                        !usable && !isPreferred
+                          ? t("models.preferredModelNeedsKey", {
+                              provider: m.provider_name,
+                            })
+                          : isPreferred
                           ? t("models.clearPreferred")
                           : t("models.setAsPreferred")
                       }
                     >
-                      <Button
-                        type="text"
-                        size="small"
-                        loading={isLoading}
-                        className={cx(
-                          styles.preferredBtn,
-                          isPreferred && styles.preferredActive,
-                        )}
-                        onClick={() => void handleSetPreferred(m)}
-                        icon={
-                          <Star
-                            size={14}
-                            fill={isPreferred ? "currentColor" : "none"}
-                          />
-                        }
-                      />
+                      <span>
+                        <Button
+                          type="text"
+                          size="small"
+                          loading={isLoading}
+                          disabled={!canToggle}
+                          className={cx(
+                            styles.preferredBtn,
+                            isPreferred && styles.preferredActive,
+                          )}
+                          onClick={() => void handleSetPreferred(m)}
+                          icon={
+                            <Star
+                              size={14}
+                              fill={isPreferred ? "currentColor" : "none"}
+                            />
+                          }
+                        />
+                      </span>
                     </Tooltip>
 
                     <div className={styles.poolModelInfo}>
@@ -364,6 +385,21 @@ export function ActiveModelPool({
                           <Tag className={styles.preferredBadge}>
                             {t("models.preferredBadge")}
                           </Tag>
+                        ) : null}
+                        {!usable ? (
+                          <Tooltip
+                            title={t("models.preferredModelNeedsKey", {
+                              provider: m.provider_name,
+                            })}
+                          >
+                            <Tag
+                              color="orange"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => navigate("/keys?tab=models")}
+                            >
+                              {t("models.preferredModelNeedsKeyTag")}
+                            </Tag>
+                          </Tooltip>
                         ) : null}
                       </span>
                     </div>

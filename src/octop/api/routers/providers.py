@@ -352,8 +352,20 @@ async def list_resolved_models(
     user: Any = Depends(current_user),
     server: Any = Depends(get_server),
 ) -> list[dict[str, Any]]:
-    """Return enabled chat models the caller may select."""
+    """Return enabled chat models the caller may select.
+
+    ``credential_usable`` tells the dashboard whether this user can actually
+    call the model now: the provider has a global key, is explicitly keyless,
+    or the user stored a personal key. The preferred-model picker disables the
+    rest instead of letting the save fail with ``PROVIDER_KEY_REQUIRED``.
+    """
     models = _list_resolved_models(server.services.provider_repo.list_all())
+    registry = getattr(getattr(server, "app_runtime", None), "agent_registry", None)
+    store = getattr(registry, "providers", None)
+    if store is not None:
+        usable = {str(row.name) for row in store.iter_auto_route_rows(user.id)}
+        for model in models:
+            model["credential_usable"] = str(model["provider_name"]) in usable
     return GroupAccess(server.services.repos).filter_rows(
         models,
         user_id=user.id,

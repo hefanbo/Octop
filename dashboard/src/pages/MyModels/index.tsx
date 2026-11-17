@@ -79,6 +79,7 @@ export default function MyModelsPage() {
             providers={[]}
             modelReasoning={modelReasoning}
             onSaved={load}
+            credentialUsable={(model) => model.credential_usable !== false}
           />
         ) : (
           <Empty description={t("models.noModelsAvailable")} />
