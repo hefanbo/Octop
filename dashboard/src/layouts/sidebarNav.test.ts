@@ -65,7 +65,7 @@ describe("sidebarNav", () => {
     ]);
   });
 
-  it("shows the unified keys page to every user for self-service", () => {
+  it("shows self-service pages to every user", () => {
     const plainUser = {
       id: 2,
       username: "ada",
@@ -76,5 +76,7 @@ describe("sidebarNav", () => {
       (section) => section.items.map((item) => item.key),
     );
     expect(keys).toContain("keys");
+    // The per-user model pool/preference is not an admin page either.
+    expect(keys).toContain("my-models");
   });
 });

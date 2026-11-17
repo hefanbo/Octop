@@ -34,6 +34,7 @@ SIDEBAR_NAV_KEYS = frozenset(
         "bridge",
         "model-keys",
         "keys",
+        "my-models",
         "workbench",
         "remote-desktop",
         "acp",

@@ -78,6 +78,7 @@ export const SIDEBAR_NAV_KEYS = [
   "bridge",
   "model-keys",
   "keys",
+  "my-models",
   "workbench",
   "remote-desktop",
   "acp",
@@ -134,6 +135,7 @@ export const SIDEBAR_GROUPED_NAV_KEYS = [
   "bridge",
   "model-keys",
   "keys",
+  "my-models",
   "workbench",
   "remote-desktop",
   "acp",
@@ -239,6 +241,13 @@ export function buildNavSections(
       labelKey: "nav.bridge",
     });
   }
+  // Per-user model preference: no admin permission, only the caller's pool.
+  settingsItems.push({
+    key: "my-models",
+    path: "/my-models",
+    icon: <Cpu size={iconSize} strokeWidth={iconStroke} />,
+    labelKey: "nav.myModels",
+  });
   // Self-service credentials: model + search keys share one page with tabs.
   settingsItems.push({
     key: "keys",
