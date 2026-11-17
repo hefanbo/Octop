@@ -16,6 +16,7 @@ const ModelKeysPage = lazy(() => import("../pages/ModelKeys"));
 const SearchKeysPage = lazy(() => import("../pages/SearchKeys"));
 const ACPPage = lazy(() => import("../pages/Agent/ACP"));
 const TokenUsagePage = lazy(() => import("../pages/Control/TokenUsage"));
+const MyModelsPage = lazy(() => import("../pages/MyModels"));
 
 // Lazy-loaded pages — Control
 const RemoteDesktopPage = lazy(() => import("../pages/Control/RemoteDesktop"));
@@ -60,6 +61,7 @@ export const pathToKey: Record<string, string> = {
   "/bridge": "bridge",
   "/keys": "keys",
   "/search-keys": "keys",
+  "/my-models": "my-models",
   "/personalization": "personalization",
   "/model-keys": "keys",
   "/personalization/skills": "personalization",
@@ -225,6 +227,7 @@ export const routeConfigs: RouteConfig[] = [
   { path: "/workspace", element: <Navigate to="/experts" replace /> },
 
   // Settings
+  { path: "/my-models", element: <MyModelsPage /> },
   { path: "/admin/models", element: <ModelsPage /> },
 
   // Admin (RequirePermission wrapper applied in MainLayout)

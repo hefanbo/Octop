@@ -100,6 +100,36 @@ async def test_explicitly_keyless_provider_is_not_required(env) -> None:
     assert row["user_key_required"] is False
 
 
+async def test_resolved_models_report_per_user_credential_usability(env) -> None:
+    """The self-service preferred-model picker needs to know what it may offer."""
+    c, srv, admin_auth, alice_auth = env
+
+    async def openai_flag(headers: dict[str, str]) -> bool:
+        r = await c.get("/api/providers/resolved", headers=headers)
+        assert r.status_code == 200
+        return next(
+            item["credential_usable"] for item in r.json() if item["provider_name"] == "openai"
+        )
+
+    assert await openai_flag(alice_auth) is True
+
+    # No global key → only a personal key makes the model callable.
+    provider = srv.services.provider_repo.get_by_name("openai")
+    assert provider is not None
+    srv.services.provider_repo.update(provider.id, api_key=None)
+
+    assert await openai_flag(alice_auth) is False
+    assert await openai_flag(admin_auth) is False
+
+    r = await c.put(
+        "/api/me/provider-keys/openai", headers=alice_auth, json={"api_key": "sk-alice"}
+    )
+    assert r.status_code == 200
+
+    assert await openai_flag(alice_auth) is True
+    assert await openai_flag(admin_auth) is False
+
+
 async def test_admin_revoke_clears_global_key(env: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     """PATCH ``{"api_key": null}`` must actually clear the stored global key.
 

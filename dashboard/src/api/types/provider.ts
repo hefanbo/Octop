@@ -120,6 +120,11 @@ export interface ResolvedModel {
   reasoning?: boolean | null;
   reasoning_config?: ReasoningCapability | null;
   input?: string[];
+  /**
+   * Whether the signed-in user can call this model now (global key, keyless
+   * provider, or a personal key). Absent on older backends — treat as usable.
+   */
+  credential_usable?: boolean;
   /** @deprecated use context_window */
   contextWindow?: number;
 }

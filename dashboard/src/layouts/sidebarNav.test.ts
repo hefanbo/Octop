@@ -76,5 +76,7 @@ describe("sidebarNav", () => {
       (section) => section.items.map((item) => item.key),
     );
     expect(keys).toContain("keys");
+    // The per-user model pool/preference is not an admin page either.
+    expect(keys).toContain("my-models");
   });
 });
